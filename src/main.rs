@@ -17,7 +17,7 @@ use std::{
 };
 
 use events::raw_user_created_event::RawUserCreatedEvent;
-use kafka::producer;
+use kafka::{consumer,producer};
 use state::app_state::AppState;
 
 #[tokio::main]
@@ -40,6 +40,14 @@ async fn main() {
         Ok(_) => println!("Published sample raw user event to Kafka"),
         Err(error) => println!("Failed to publish sample raw user event: {}", error),
     }
+
+    let kafka_consumer = kafka::consumer::create_consumer("localhost:9092");
+    let consumer_side_producer = kafka_producer.clone();
+    tokio::spawn(async move {
+        if let Err(error) = kafka::consumer::start_raw_user_event_consumer(kafka_consumer, consumer_side_producer).await {
+            println!("Kafka consumer error: {}", error);
+        }
+    });
 
 
     let app  = routes::create_router(state);
