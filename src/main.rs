@@ -1,6 +1,9 @@
 mod errors;
+mod events;
 mod handlers;
+mod kafka;
 mod models;
+mod processors;
 mod routes;
 mod services;
 mod state;
@@ -13,14 +16,31 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+use events::raw_user_created_event::RawUserCreatedEvent;
+use kafka::producer;
 use state::app_state::AppState;
 
 #[tokio::main]
 async fn main() {
+    let kafka_producer = producer::create_producer("localhost:9092");
         let state = AppState {
         users: Arc::new(Mutex::new(HashMap::new())),
         next_id: Arc::new(Mutex::new(1)),
     };
+
+    let sample_event = RawUserCreatedEvent {
+        event_id: String::from("evt-001"),
+        user_id: 101,
+        name: String::from("  Abhay Bhatt  "),
+        email: String::from("ABHAY@EXAMPLE.COM"),
+        source: String::from("user-api"),
+    };
+
+        match producer::publish_raw_user_created_event(&kafka_producer, &sample_event).await {
+        Ok(_) => println!("Published sample raw user event to Kafka"),
+        Err(error) => println!("Failed to publish sample raw user event: {}", error),
+    }
+
 
     let app  = routes::create_router(state);
 

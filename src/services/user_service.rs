@@ -1,8 +1,7 @@
-use std::fmt::format;
 
 use crate::{
     errors::api_error::ApiError,
-    models::{user::{self, User}, user_request::CreateUserRequest},
+    models::{user::{User}, user_request::CreateUserRequest},
     state::app_state::AppState,
 };
 

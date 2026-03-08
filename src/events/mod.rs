@@ -1,0 +1,2 @@
+pub mod processed_user_created_event;
+pub mod raw_user_created_event;
